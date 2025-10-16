@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,10 +37,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun UnitConverter(modifier: Modifier){
-    Column {
+    Column(modifier = modifier) {
         Row {
-            Greeting(name = "Unit Converter",modifier)
-            Greeting(name = "Convert",modifier)
+            Text(text = "Hello World")
+        }
+        Row {
+            OutlinedTextField(value = "", onValueChange = {
+
+            })
         }
     }
 }
@@ -52,10 +57,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     )
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
-fun GreetingPreview() {
-    UnitConverterTheme {
-        Greeting("Android")
-    }
+fun UnitConverterPreview(){
+    UnitConverter( modifier = Modifier.padding());
 }
