@@ -1,6 +1,8 @@
 package com.example.unitconverter
 
+import android.content.ContentValues.TAG
 import android.os.Bundle
+import android.util.Log
 import android.widget.Space
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -25,12 +27,37 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.unitconverter.ui.theme.UnitConverterTheme
+import kotlin.math.roundToInt
+
+class ExpandableSectionState {
+    var isExpanded by mutableStateOf(false)
+        private set // Make the setter private to control mutations
+
+    fun toggle() {
+        isExpanded = !isExpanded
+        Log.d(TAG, "isExpanded: $isExpanded")
+    }
+
+    fun close() {
+        isExpanded = false
+    }
+    // Define a TAG specific to this class
+    companion object {
+        private const val TAG = "ExpandableSection" // A descriptive name
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,19 +75,44 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun UnitConverter(modifier: Modifier = Modifier){
+
+    var inputValue by remember { mutableStateOf("") }
+    var outputValue by remember { mutableStateOf("") }
+    var inputUnit by remember { mutableStateOf("Centimeters") }
+    var outputUnit by remember { mutableStateOf("Meters") }
+    var iExpanded by remember { mutableStateOf(false) }
+    var oExpanded by remember { mutableStateOf(false) }
+    val conversionFactor = remember { mutableDoubleStateOf(0.01) }
+    val sectionState = remember { ExpandableSectionState() }
+
+    fun convertUnits(){
+        val inputValueDouble = inputValue.toDoubleOrNull() ?: 0.0
+        val result = (inputValueDouble * conversionFactor.doubleValue * 100.0).roundToInt() / 100.0
+        outputValue = result.toString()
+    }
+
+
     Column(modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
+
+
+
+
         Row {
             Text(text = "Hello World")
         }
         Spacer(modifier = Modifier.padding(10.0.dp))
-        OutlinedTextField(value = "", onValueChange = {
-
-        },modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = inputValue,
+            onValueChange = {
+                inputValue = it
+            },
+            label = { Text("Enter Value") },
+            modifier = Modifier.fillMaxWidth())
         Row {
             val context = LocalContext.current
             Button(onClick = {
+
                 Toast.makeText(context, "Hello World", Toast.LENGTH_SHORT).show()
             }) {
                 Text("ClickMe")
@@ -68,14 +120,21 @@ fun UnitConverter(modifier: Modifier = Modifier){
         }
         Row {
             Box{
-              Button(onClick = {}) {
+              Button(onClick = {
+                  sectionState.toggle()
+              }) {
                   Text("Select")
                   Icon(Icons.Default.ArrowDropDown, contentDescription = null)
               }
-                DropdownMenu( expanded = false, onDismissRequest = {}) {
+                DropdownMenu( expanded = sectionState.isExpanded,   onDismissRequest = { sectionState.close() } ) {
                     DropdownMenuItem(
-                        text = { Text("Unit 3") },
-                        onClick = {}
+                        text = { Text("Centimeters") },
+                        onClick = {
+                            sectionState.close()
+                            inputUnit = "Centimeters"
+                            conversionFactor.doubleValue = 0.01
+                            convertUnits()
+                        }
                     )
                     DropdownMenuItem(
                         text = { Text("Unit 4") },
