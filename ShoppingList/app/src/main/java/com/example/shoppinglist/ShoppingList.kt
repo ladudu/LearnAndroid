@@ -18,6 +18,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -56,7 +57,10 @@ fun ShoppingListItemEditor(item: ShoppingItem, onEditComplete: (String, Int) -> 
     var isEditing by remember { mutableStateOf(item.isEditing) }
 
     Row (
-        modifier = Modifier.padding(8.dp).fillMaxWidth().padding(8.dp),
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ){
         Column {
@@ -65,7 +69,9 @@ fun ShoppingListItemEditor(item: ShoppingItem, onEditComplete: (String, Int) -> 
                 onValueChange = {
                     editedName = it
                 },
-                modifier = Modifier.wrapContentWidth().padding(8.dp),
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .padding(8.dp),
                 singleLine = true
             )
             BasicTextField(
@@ -73,7 +79,9 @@ fun ShoppingListItemEditor(item: ShoppingItem, onEditComplete: (String, Int) -> 
                 onValueChange ={
                     editedQuantity = it
                 },
-                modifier = Modifier.wrapContentWidth().padding(8.dp),
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .padding(8.dp),
                 singleLine = true
             )
         }
@@ -95,10 +103,16 @@ fun ShoppingListItem(
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ){
-    Row(modifier = Modifier.padding(8.dp).fillMaxWidth().border(
-        border = BorderStroke(2.dp, Color(0xFF018786)),
-        shape = RoundedCornerShape(20)
-    ))
+    Row(modifier = Modifier
+        .padding(8.dp)
+        .fillMaxWidth()
+        .border(
+            border = BorderStroke(2.dp, Color(0xFF018786)),
+            shape = RoundedCornerShape(20)
+        ),
+        horizontalArrangement = Arrangement.SpaceBetween
+    )
+
     {
         Text(text = item.name, modifier = Modifier.padding(8.dp))
         Text(text = "Quantity: ${item.quantity}", modifier = Modifier.padding(8.dp))
@@ -143,8 +157,34 @@ fun ShoppingListApp(innerPadding: PaddingValues){
                 .padding(16.dp),
         )
         {
-            items(sItems.size) {
-                ShoppingListItem(sItems[it], onEdit = {},onDelete = {})
+            items(
+                items = sItems,
+                key = { item -> item.id }
+            ) {
+                item ->
+                if (item.isEditing) {
+                    ShoppingListItemEditor(item = item, onEditComplete = { name, quantity ->
+                        // 替换为新对象来完成编辑
+                        val index = sItems.indexOf(item)
+                        if (index != -1) {
+                            sItems[index] = item.copy(name = name, quantity = quantity, isEditing = false)
+                        }
+                    })
+                }else{
+                    ShoppingListItem(
+                        item = item,
+                        onEdit = {
+                            // 替换为新对象来开始编辑
+                            val index = sItems.indexOf(item)
+                            if (index != -1) {
+                                sItems[index] = item.copy(isEditing = true)
+                            }
+                        },
+                        onDelete = {
+                            sItems.remove(item)
+                        }
+                    )
+                }
             }
         }
     }
